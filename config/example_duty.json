@@ -1,0 +1,25 @@
+{
+  "duties": [
+    {
+      "uid": "update_data",
+      "action_type": "#update_data",
+      "action_id": "update_data"
+    },
+    {
+      "uid": "provide_history",
+      "action_type": "#provide_history",
+      "action_id": "provide_history"
+    },
+    {
+      "uid": "report_issue",
+      "action_type": "#report_issue",
+      "action_id": "report_issue"
+    },
+    {
+      "uid": "send_data",
+      "action_type": "#send_data",
+      "action_id": "send_data",
+      "violation_id": "v_send_data"
+    }
+  ]
+}

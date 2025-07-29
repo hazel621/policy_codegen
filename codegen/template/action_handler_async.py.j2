@@ -1,0 +1,248 @@
+from fastapi import APIRouter, HTTPException
+from database.models import LogRequestExecution, LogDutyExecution, Role, Power, Agent, AgentPowerRelation
+from datetime import datetime
+from datetime import timedelta
+import uuid
+from operations import notifier
+from event_handler.state_checker import check_state
+
+router = APIRouter()
+
+@router.post("/{{action_scope}}/{{ action_type }}/")
+async def {{ action_type }}_handler(agent_id: str, counterparty_role_id:str=None, counterparty_agent_id:str=None, target_role_id: str=None, target_agent_id: str = None, scope: str = None,item: str = None,duty_ref:str=None):
+    log = LogRequestExecution(
+        uid=str(uuid.uuid4()),
+        requester_id=agent_id,
+        action_id="{{ action_type }}",
+        started_at=datetime.now(),
+        end_at=None,
+        related_duties=[],
+        related_powers=[],
+        status="pending",
+    )
+    log.save()
+
+    # 🧭 State Checker: check agent's state
+    state_check = check_state(agent_id=agent_id, action_id= "{{ action_type }}",scope="{{action_scope}}", target_agent_id=target_agent_id, target_role_id=target_role_id, item=item,duty_ref=duty_ref)
+    if state_check["status"] == "fail":
+        log.status = "failed"
+        log.result = state_check["message"]
+        log.end_at = datetime.now()
+        log.save()
+        raise HTTPException(status_code=403, detail=state_check["message"])
+    print(f"🧭 State Checker: {state_check['message']} for Agent {agent_id} and Action {{action_type}}")
+
+    {% for op in operations %}
+    {% if op.type == "activate_duty" %}
+    counterparty_role_id = "{{ op.parameter.counterparty_role_id }}" if "{{ op.parameter.counterparty_role_id }}"!="from_request" else counterparty_agent_id
+    counterparty_agent_id = "{{ op.parameter.counterparty_agent_id }}" if "{{ op.parameter.counterparty_agent_id }}"!="from_request" else counterparty_agent_id
+    duty_id = "{{ op.parameter.duty_id }}"
+    if not counterparty_role_id and not counterparty_agent_id:
+        log.status = "failed"
+        log.result = "Either role_id or agent_id must be provided"
+        log.end_at = datetime.now()
+        log.save()
+        raise HTTPException(status_code=400, detail="Either role_id or agent_id must be provided")
+    if counterparty_role_id:
+        role = Role.objects(uid=counterparty_role_id).first()
+        if not role:
+            log.status = "failed"
+            log.result = f"Role { counterparty_role_id } not found"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=404, detail=f"Role { counterparty_role_id } not found")
+        for duty in role.duties:
+            if duty["duty_id"] == duty_id:
+                print(f"✅ Duty {duty_id} activated for Role { counterparty_role_id }")
+                related_duties = [{"role_id": counterparty_role_id, "duty_id": duty_id}]
+                log.related_duties = related_duties
+                log.save()
+
+                duty_log_id = str(uuid.uuid4())
+                duty_log = LogDutyExecution(
+                    uid=duty_log_id,
+                    request_id=log.uid,
+                    requester_id=agent_id,
+                    duty_id= duty_id,
+                    action_id="{{ action_type }}",
+                    related_agents={"roles": [counterparty_role_id],"scope": "{{action_scope}}" },
+                    assigned_at=datetime.now(),
+                    started_at=None,
+                    fulfilled_at=None,
+                    violated_at=None,
+                    status="assigned",
+                    status_change_leads_to=[{% for rule in operations if rule.type == "rules" %}{{ rule.rules }}{% if not loop.last %}, {% endif %}{% endfor %}]
+                )
+                duty_log.save()
+                break
+    elif counterparty_agent_id:
+        agent = Agent.objects(uid=counterparty_agent_id).first()
+        if not agent:
+            log.status = "failed"
+            log.result = f"Agent {counterparty_agent_id} not found"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=404, detail=f"Agent {counterparty_agent_id} not found")
+        for duty in agent.duties:
+            if duty["duty_id"] == duty_id :
+                print(f"✅ Duty { duty_id } activated for Agent {counterparty_agent_id}")
+                related_duties = [{"agent_id": counterparty_agent_id, "duty_id":  duty_id }]
+                log.related_duties = related_duties
+                log.save()
+
+                duty_log_id = str(uuid.uuid4())
+                duty_log = LogDutyExecution(
+                    uid=duty_log_id,
+                    request_id=log.uid,
+                    requester_id=agent_id,
+                    duty_id= duty_id ,
+                    action_id="{{ action_type }}",
+                    related_agents={"agents": [counterparty_agent_id],"scope": "{{action_scope}}"},
+                    assigned_at=datetime.now(),
+                    started_at=None,
+                    fulfilled_at=None,
+                    violated_at=None,
+                    status="assigned",
+                    status_change_leads_to=[{% for rule in operations if rule.type == "rules" %}{{ rule.rules }}{% if not loop.last %}, {% endif %}{% endfor %}]
+                )
+                duty_log.save()
+                break
+    {% elif op.type == "add_power" %}
+    power_id = "{{ op.parameter.power_id }}"
+    power_exist =  Power.objects(uid=power_id).first()
+    target_role_id = "{{ op.parameter.target_role_id }}" if "{{ op.parameter.target_role_id }}"!="from_request" else target_role_id
+    target_agent_id = "{{ op.parameter.target_agent_id }}" if "{{ op.parameter.target_agent_id }}"!="from_request" else target_agent_id
+    item = "{{ op.parameter.item }}".replace("requester",agent_id) if "{{ op.parameter.item }}" else item
+
+    if not target_role_id and not target_agent_id:
+        log.status = "failed"
+        log.result = "Either role_id or agent_id must be provided"
+        log.end_at = datetime.now()
+        log.save()
+        raise HTTPException(status_code=400, detail="Either role_id or agent_id must be provided")
+    
+    if not power_exist:
+        log.status = "failed"
+        log.result = f"Power {power_id} not found"
+        log.end_at = datetime.now()
+        log.save()
+        raise HTTPException(status_code=404, detail=f"Power {power_id} not found")
+    
+    if target_role_id:
+        target_role = Role.objects(uid=target_role_id).first()
+        if not target_role:
+            log.status = "failed"
+            log.result = f"Role {target_role_id} not found"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=404, detail=f"Role {target_role_id} not found")  
+        
+        log.related_powers = [{"role_id": target_role_id, "power_id": power_id}]
+        existing_power = target_role.powers
+        expire_at = None
+        duration = "{{ op.parameter.duration }}" if "{{ op.parameter.duration }}" else None
+        scope = "{{ op.parameter.scope }}" if "{{ op.parameter.scope }}"!="from_request" else target_role.scope
+
+        if any(power["power_id"] == power_id for power in existing_power):
+            log.status = "succeeded"
+            log.result = f"Power {power_id} already exists in Role {target_role_id}"
+            log.end_at = datetime.now()
+            log.save()
+        else:
+            if duration:
+                if duration.endswith("s"):
+                    duration = int(duration[:-1] )
+                    expire_at = datetime.now() + timedelta(seconds=duration)
+                elif duration.endswith("d"):
+                    duration = int(duration[:-1] )
+                    expire_at = datetime.now() + timedelta(days=duration)
+                elif duration.endswith("h"):
+                    duration = int(duration[:-1] )
+                    expire_at = datetime.now() + timedelta(hours=duration)
+                elif duration.endswith("m"):
+                    duration = int(duration[:-1] )
+                    expire_at = datetime.now() + timedelta(minutes=duration)
+
+            power_doc = {
+                "power_id": power_id,
+                "created_at": datetime.now(),
+                "expire_at": expire_at,
+                "scope": scope,
+                "item": item,
+            }
+            temporary_powers = target_role.temporary_powers if target_role.temporary_powers else {}
+            temporary_powers[power_id]=power_doc
+            target_role.temporary_powers= temporary_powers
+            target_role.save()
+            print(f"⚡️ Power {{ op.parameter.power_id }} added by performing {{ action_type }}")
+    elif target_agent_id:
+        agent = Agent.objects(uid=target_agent_id).first()
+        if not agent:
+            log.status = "failed"
+            log.result = f"Agent {target_agent_id} not found"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=404, detail=f"Agent {target_agent_id} not found")
+        
+        agent_powers_rel = AgentPowerRelation.objects(uid=target_agent_id).first()
+        agent_powers = agent_powers_rel.powers if agent_powers_rel else []
+        existing_power = agent_powers.get(power_id, [])
+        log.related_powers = [{"agent_id": target_agent_id, "power_id": power_id}]
+        if existing_power:
+            log.status = "succeeded"
+            log.result = f"Power {power_id} already exists in Agent {target_agent_id}"
+            log.end_at = datetime.now()
+            log.save()
+        else:
+            expire_at = None
+            duration = "{{ op.parameter.duration }}" if "{{ op.parameter.duration }}" else None
+            if duration:
+                if duration.endswith("s"):
+                    duration = int(duration[:-1] )
+                    expire_at = datetime.now() + timedelta(seconds=duration)
+                elif duration.endswith("d"):
+                    duration = int(duration[:-1] )
+                    expire_at = datetime.now() + timedelta(days=duration)
+                elif duration.endswith("h"):
+                    duration = int(duration[:-1] )
+                    expire_at = datetime.now() + timedelta(hours=duration)
+                elif duration.endswith("m"):
+                    duration = int(duration[:-1] )
+                    expire_at = datetime.now() + timedelta(minutes=duration)
+            power_doc = {
+                "power_id": power_id,
+                "created_at": datetime.now(),
+                "expire_at": expire_at,
+                "scope": scope,
+                "item": item,
+            }
+            agent_powers[power_id] = power_doc
+            agent_powers_rel.powers = agent_powers
+            agent_powers_rel.save()
+            print(f"⚡️ Power {{ op.parameter.power_id }} added by performing {{ action_type }}")
+    {% elif op.type == "notify" %}
+    requester_id = agent_id
+    message = f"{{ op.parameter.message }}"
+    target_agent_id = "{{ op.parameter.target_agent_id }}" if "{{ op.parameter.target_agent_id }}"!="from_request" else target_agent_id
+    target_role_id = "{{ op.parameter.target_role_id }}" if "{{ op.parameter.target_role_id }}"!="from_request" else target_role_id
+    if target_agent_id:
+        message = f"{requester_id} {{ op.parameter.message }} {target_agent_id}"
+        notifier.notify(target_agent_id, message)
+    elif target_role_id:
+        message = f"{requester_id} {{ op.parameter.message }} {target_role_id}"
+        notifier.notify(target_role_id, message)
+    if duty_ref:
+        duty_log = LogDutyExecution.objects(uid=duty_ref).first()
+        duty_log.status = "fulfilled"
+        duty_log.fulfilled_at = datetime.now()
+        duty_log.save()
+        print(f"🔔 Notification sent to {target_role_id or target_agent_id} by {requester_id}")
+    
+
+    {% endif %}
+    {% endfor %}
+
+    log.status = "succeeded"
+    log.end_at = datetime.now()
+    log.save()
+    return {"status": "success", "action": "{{ action_type }}"}

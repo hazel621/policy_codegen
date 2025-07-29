@@ -1,0 +1,44 @@
+{
+  "powers": [
+    {
+      "uid": "create_data",
+      "action_type": "#create_data",
+      "action_id": "create_data"
+    },
+    {
+      "uid": "change_data",
+      "action_type": "#change_data",
+      "action_id": "change_data"
+    },
+    {
+      "uid": "view_data",
+      "action_type": "#view_data",
+      "action_id": "view_data"
+    },
+    {
+      "uid": "grant_consent",
+      "action_type": "#grant_consent",
+      "action_id": "grant_consent"
+    },
+    {
+      "uid": "revoke_consent",
+      "action_type": "#revoke_consent",
+      "action_id": "revoke_consent"
+    },
+    {
+      "uid": "request_access",
+      "action_type": "#request_access",
+      "action_id": "request_access"
+    },
+    {
+      "uid": "report_fine",
+      "action_type": "#report_fine",
+      "action_id": "report_fine"
+    },
+    {
+      "uid": "share_data",
+      "action_type": "#share_data",
+      "action_id": "share_data"
+    }
+  ]
+}

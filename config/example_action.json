@@ -1,0 +1,209 @@
+{
+    "actions": [
+        {
+            "uid": "create_data",
+            "action_type": "#create_data",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "new data of {target_agent_id} created by doctor",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "change_data",
+            "action_type": "#change_data",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "data of {target_agent_id} changed by doctor",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "view_data",
+            "action_type": "#view_data",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "{requester_id} viewed data of {target_agent_id}",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "update_data",
+            "action_type": "#update_data",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "data of {target_agent_id} updated by doctor",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "send_data",
+            "action_type": "#send_data",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "data sent to {target_role_id} by {requester_id}",
+                            "target_role_id": "target_role_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "grant_consent",
+            "action_type": "#grant_consent",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "activate_power",
+                        "parameter": {
+                            "power_id": "share_data",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id",
+                            "scope": "scope"
+                        }
+                    },
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "consent granted by patient{requester_id}",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "revoke_consent",
+            "action_type": "#revoke_consent",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "deactivate_power",
+                        "parameter": {
+                            "power_id": "share_data",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    },
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "consent revoked by patient{requester_id}",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "request_access",
+            "action_type": "#request_access",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "activate_duty",
+                        "parameter": {
+                            "duty_id": "send_data",
+                            "counterparty_role_id": "counterparty_role_id",
+                            "counterparty_agent_id": "counterparty_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "share_data",
+            "action_type": "#share_data",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "{requester_id} shared data with {target_agent_id},{target_role_id}",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "provide_history",
+            "action_type": "#provide_history",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "{requester_id} provided history to {target_agent_id}",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "report_fine",
+            "action_type": "#report_fine",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "{requester_id} reported for fine",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "uid": "report_issue",
+            "action_type": "#report_issue",
+            "consequence": {
+                "operation": [
+                    {
+                        "type": "notify",
+                        "parameter": {
+                            "message": "{requester_id} reported an issue",
+                            "target_role_id": "target_role_id",
+                            "target_agent_id": "target_agent_id"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

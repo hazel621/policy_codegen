@@ -1,0 +1,14 @@
+{
+    "agent": [
+        {
+            "uid": "Alice",
+            "agent_name": "Alice",
+            "roles": ["patient_hospital_1"]
+        },
+        {
+            "uid": "Bob",
+            "agent_name": "Bob",
+            "roles": ["doctor_hospital_1"]
+        }
+    ]
+}

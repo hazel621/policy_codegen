@@ -1,0 +1,6 @@
+fastapi
+mongoengine
+motor
+redis
+apscheduler
+pymongo

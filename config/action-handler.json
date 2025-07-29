@@ -1,0 +1,37 @@
+{
+    "handlers": [
+        {
+            "action_id": "grant_consent",
+            "action_type": "grant_consent",
+            "action_scope": "hospital_1",
+            "operation": [
+                {
+                    "type": "add_power",
+                    "parameter": {
+                        "power_id": "share_data",
+                        "target_role_id": "from_request",
+                        "target_agent_id": "from_request",
+                        "scope": "from_request",
+                        "item": "requester.data",
+                        "duration": "10d"
+                    }
+                }
+            ]
+        },
+        {
+            "action_id": "share_data",
+            "action_type": "share_data",
+            "action_scope": "hospital_1",
+            "operation": [
+                {
+                    "type": "notify",
+                    "parameter": {
+                        "message": "{requester_id} shared data with {target_agent_id} {target_role_id}",
+                        "target_role_id": "target_role_id",
+                        "target_agent_id": "target_agent_id"
+                    }
+                }
+            ]
+        }
+    ]
+}

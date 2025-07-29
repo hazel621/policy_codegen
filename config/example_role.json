@@ -1,0 +1,79 @@
+{
+    "roles": [
+      {
+        "uid": "patient_hospital_1",
+        "role_name": "patient_hospital_1",
+        "description": "Role for patients in Hospital 1",
+        "scope": "hospital_1",
+        "powers": [
+          {
+            "power_id": "grant_consent",
+            "initial_state": "active",
+            "scope": "hospital_1"
+          },
+          {
+            "power_id": "revoke_consent",
+            "initial_state": "active",
+            "scope": "hospital_1"
+          },
+          {
+            "power_id": "request_access",
+            "initial_state": "active",
+            "scope": "hospital_1"
+          }
+        ],
+        "duties": [
+          {
+            "duty_id": "provide_history",
+            "initial_state": "active",
+            "counterparty_role_id": "doctor_hospital_1",
+            "scope": "hospital_1"
+          },
+          {
+            "duty_id": "report_issue",
+            "initial_state": "active",
+            "counterparty_role_id": "doctor_hospital_1",
+            "scope": "hospital_1"
+          }
+        ]
+      },
+      {
+        "uid": "doctor_hospital_1",
+        "role_name": "doctor_hospital_1",
+        "description": "Role for doctors in Hospital 1",
+        "scope": "hospital_1",
+        "powers": [
+          {
+            "power_id": "create_data",
+            "initial_state": "active",
+            "scope": "hospital_1"
+          },
+          {
+            "power_id": "change_data",
+            "initial_state": "active",
+            "scope": "hospital_1"
+          },
+          {
+            "power_id": "view_data",
+            "initial_state": "inactive",
+            "scope": "hospital_1"
+          }
+        ],
+        "duties": [
+          {
+            "duty_id": "update_data",
+            "initial_state": "pending",
+            "counterparty_role_id": "patient_hospital_1",
+            "scope": "hospital_1"
+          },
+          {
+            "duty_id": "send_data",
+            "initial_state": "pending",
+            "counterparty_role_id": "patient_hospital_1",
+            "scope": "hospital_1"
+          }
+        ]
+      }
+    ]
+  }
+  

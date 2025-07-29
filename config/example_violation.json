@@ -1,0 +1,22 @@
+{
+    "violations": [
+        {
+            "uid": "v_send_data",
+            "condition": {
+            "type": "timeout",
+            "time": "30days"
+            },
+            "consequence": {
+            "operation": [
+                {
+                "type": "activate_power",
+                "power_id": "report_for_fine",
+                "holder": "requster_id",
+                "scope": "duty_holder_id"
+                }
+            ]
+            }
+        }     
+    ]
+  }
+  

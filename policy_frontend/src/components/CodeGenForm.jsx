@@ -47,10 +47,19 @@ const examples = {
 ]`,
   actions: `[
   {
-    "uid": "a1",
-    "action_type": "grant_access",
+    "uid": "request_access",
+    "action_type": "#request_access",
     "consequence": {
-      "log": "access granted"
+        "operation": [
+            {
+                "type": "activate_duty",
+                "parameter": {
+                    "duty_id": "send_data",
+                    "counterparty_role_id": "counterparty_role_id",
+                    "counterparty_agent_id": "counterparty_agent_id"
+                }
+            }
+        ]
     }
   }
 ]`,
@@ -77,7 +86,7 @@ const examples = {
         "condition": {
             "type": "timeout",
             "time": "72h"
-        }
+        },
         "consequence": {
             "operation": [
                 {
@@ -90,18 +99,18 @@ const examples = {
     }
 ]`,
   "action-handlers": `{
-  "action_id": "grant_access",
-  "action_type": "grant_access",
-  "operation": {
-    [
+    "action_id": "change_data",
+    "action_type": "change_data",
+    "action_scope": "hospital_1",
+    "operation": [
       {
-      "type": "add_duty",
-      "parameter": {
-          "duty_id": "send_data",
-          "counterparty_role_id": "doctor_hospital_1"
+        "type": "notify",
+        "parameter": {
+          "message": "data of {target_agent_id} changed by doctor",
+          "target_agent_id": "from_request"
+        }
       }
     ]
-  }
 }`,
 };
 
@@ -112,7 +121,7 @@ export default function CodegenSubmitPanel() {
 
   const handleDpclSubmit = async (dpclText) => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/dpcl", {
+      const res = await fetch("http://nginx-gateway/codegen/dpcl", {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: dpclText,
@@ -157,42 +166,19 @@ export default function CodegenSubmitPanel() {
     }
   
     try {
-      const res = await fetch(`http://127.0.0.1:8000/${endpoint}`, {
+      const res = await fetch(`http://nginx-gateway/codegen/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jsonData),
       });
   
       const data = await res.json();
+      // console.log("Raw response from /codegen:", data); 
       setResult(JSON.stringify(data, null, 2));
     } catch (err) {
       setResult("❌ Request failed: " + err.message);
     }
   };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   let jsonData;
-  //   try {
-  //     jsonData = JSON.parse(inputJson);
-  //   } catch (err) {
-  //     setResult("❌ Invalid JSON: " + err.message);
-  //     return;
-  //   }
-
-  //   try {
-  //     const res = await fetch(`http://127.0.0.1:8000/${endpoint}`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(jsonData),
-  //     });
-
-  //     const data = await res.json();
-  //     setResult(JSON.stringify(data, null, 2));
-  //   } catch (err) {
-  //     setResult("❌ Request failed: " + err.message);
-  //   }
-  // };
 
   return (
     <div style={styles.container}>

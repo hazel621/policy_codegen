@@ -3,8 +3,8 @@ from database.models import LogRequestExecution, LogDutyExecution, Role, Power, 
 from datetime import datetime
 from datetime import timedelta
 import uuid
-from operations import notifier
 from event_handler.state_checker import check_state
+import redis
 
 router = APIRouter()
 
@@ -226,11 +226,31 @@ async def {{ action_type }}_handler(agent_id: str, counterparty_role_id:str=None
     target_agent_id = "{{ op.parameter.target_agent_id }}" if "{{ op.parameter.target_agent_id }}"!="from_request" else target_agent_id
     target_role_id = "{{ op.parameter.target_role_id }}" if "{{ op.parameter.target_role_id }}"!="from_request" else target_role_id
     if target_agent_id:
-        message = f"{requester_id} {{ op.parameter.message }} {target_agent_id}"
-        notifier.notify(target_agent_id, message)
+        message = f"{{ op.parameter.message }}"
+        try:
+            r = redis.Redis(host="redis", port=6379, socket_connect_timeout=2, socket_timeout=2)
+            r.publish(target_agent_id, message)
+            print(f"Notification sent to {target_agent_id}: {message}")
+        except redis.ConnectionError as e:
+            print(f"Redis connection error: {e}")
+            log.status = "failed"
+            log.result = "Redis connection error"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=500, detail="Internal server error: Redis connection failed")
     elif target_role_id:
-        message = f"{requester_id} {{ op.parameter.message }} {target_role_id}"
-        notifier.notify(target_role_id, message)
+        message = f"{{ op.parameter.message }}"
+        try:
+            r = redis.Redis(host="redis", port=6379, socket_connect_timeout=2, socket_timeout=2)
+            r.publish(target_role_id, message)
+            print(f"Notification sent to {target_role_id}: {message}")
+        except redis.ConnectionError as e:
+            print(f"Redis connection error: {e}")
+            log.status = "failed"
+            log.result = "Redis connection error"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=500, detail="Internal server error: Redis connection failed")
     if duty_ref:
         duty_log = LogDutyExecution.objects(uid=duty_ref).first()
         duty_log.status = "fulfilled"
@@ -238,6 +258,91 @@ async def {{ action_type }}_handler(agent_id: str, counterparty_role_id:str=None
         duty_log.save()
         print(f"🔔 Notification sent to {target_role_id or target_agent_id} by {requester_id}")
     
+    {% elif op.type == "remove_power" %}
+    power_id = "{{ op.parameter.power_id }}"
+    power_exist =  Power.objects(uid=power_id).first()
+    target_role_id = "{{ op.parameter.target_role_id }}" if "{{ op.parameter.target_role_id }}"!="from_request" else target_role_id
+    target_agent_id = "{{ op.parameter.target_agent_id }}" if "{{ op.parameter.target_agent_id }}"!="from_request" else target_agent_id
+    if not target_role_id and not target_agent_id:
+        log.status = "failed"
+        log.result = "Either role_id or agent_id must be provided"
+        log.end_at = datetime.now()
+        log.save()
+        raise HTTPException(status_code=400, detail="Either role_id or agent_id must be provided")
+    if not power_exist:
+        log.status = "failed"
+        log.result = f"Power {power_id} not found"
+        log.end_at = datetime.now()
+        log.save()
+        raise HTTPException(status_code=404, detail=f"Power {power_id} not found")
+    if target_role_id:
+        target_role = Role.objects(uid=target_role_id).first()
+        if not target_role:
+            log.status = "failed"
+            log.result = f"Role {target_role_id} not found"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=404, detail=f"Role {target_role_id} not found")  
+        
+        log.related_powers = [{"role_id": target_role_id, "power_id": power_id}]
+        existing_power = target_role.temporary_powers if target_role.temporary_powers else {}
+        item = "{{ op.parameter.item }}".replace("requester",agent_id) if "{{ op.parameter.item }}" else None
+        for power in existing_power:
+            if power["power_id"] == power_id:
+                if item and power.get("item") != item:
+                    log.status = "failed"
+                    log.result = f"Power {power_id} not found in Role {target_role_id} with item {item}"
+                    log.end_at = datetime.now()
+                    log.save()
+                    raise HTTPException(status_code=404, detail=f"Power {power_id} not found in Role {target_role_id} with item {item}")
+                del target_role.temporary_powers[power_id]
+                target_role.save()
+                log.status = "succeeded"
+                log.result = f"Power {power_id} removed from Role {target_role_id}"
+                log.end_at = datetime.now()
+                log.save()
+                print(f"⚡️ Power {power_id} removed from Role {target_role_id} by performing {{ action_type }}")
+                break
+        else:
+            log.status = "succeeded"
+            log.result = f"Power {power_id} not found in Role {target_role_id}"
+            log.end_at = datetime.now()
+            log.save()
+    elif target_agent_id:
+        agent = Agent.objects(uid=target_agent_id).first()
+        if not agent:
+            log.status = "failed"
+            log.result = f"Agent {target_agent_id} not found"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=404, detail=f"Agent {target_agent_id} not found")
+        
+        agent_powers_rel = AgentPowerRelation.objects(uid=target_agent_id).first()
+        agent_powers = agent_powers_rel.powers if agent_powers_rel else {}
+        log.related_powers = [{"agent_id": target_agent_id, "power_id": power_id}]
+        item = "{{ op.parameter.item }}".replace("requester",agent_id) if "{{ op.parameter.item }}" else None
+        for power in agent_powers:
+            if power["power_id"] == power_id:
+                if item and power.get("item") != item:
+                    log.status = "failed"
+                    log.result = f"Power {power_id} not found in Agent {target_agent_id} with item {item}"
+                    log.end_at = datetime.now()
+                    log.save()
+                    raise HTTPException(status_code=404, detail=f"Power {power_id} not found in Agent {target_agent_id} with item {item}")
+                del agent_powers[power_id]
+                agent_powers_rel.powers = agent_powers
+                agent_powers_rel.save()
+                log.status = "succeeded"
+                log.result = f"Power {power_id} removed from Agent {target_agent_id}"
+                log.end_at = datetime.now()
+                log.save()
+                print(f"⚡️ Power {power_id} removed from Agent {target_agent_id} by performing {{ action_type }}")
+                break
+        else:
+            log.status = "succeeded"
+            log.result = f"Power {power_id} not found in Agent {target_agent_id}"
+            log.end_at = datetime.now()
+            log.save()
 
     {% endif %}
     {% endfor %}

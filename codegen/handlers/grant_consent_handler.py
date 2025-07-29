@@ -3,13 +3,13 @@ from database.models import LogRequestExecution, LogDutyExecution, Role, Power, 
 from datetime import datetime
 from datetime import timedelta
 import uuid
-from operations import notifier
 from event_handler.state_checker import check_state
+import redis
 
 router = APIRouter()
 
 @router.post("/hospital_1/grant_consent/")
-async def grant_consent_handler(agent_id: str, counterparty_role_id:str=None, counterparty_agent_id:str=None, target_role_id: str=None, target_agent_id: str = None, scope: str = None,item: str = None):
+async def grant_consent_handler(agent_id: str, counterparty_role_id:str=None, counterparty_agent_id:str=None, target_role_id: str=None, target_agent_id: str = None, scope: str = None,item: str = None,duty_ref:str=None):
     log = LogRequestExecution(
         uid=str(uuid.uuid4()),
         requester_id=agent_id,
@@ -23,7 +23,7 @@ async def grant_consent_handler(agent_id: str, counterparty_role_id:str=None, co
     log.save()
 
     # 🧭 State Checker: check agent's state
-    state_check = check_state(agent_id=agent_id, action_id= "grant_consent",scope="hospital_1", target_agent_id=target_agent_id, target_role_id=target_role_id, item=item)
+    state_check = check_state(agent_id=agent_id, action_id= "grant_consent",scope="hospital_1", target_agent_id=target_agent_id, target_role_id=target_role_id, item=item,duty_ref=duty_ref)
     if state_check["status"] == "fail":
         log.status = "failed"
         log.result = state_check["message"]

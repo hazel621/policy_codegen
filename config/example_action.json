@@ -39,7 +39,6 @@
                         "type": "notify",
                         "parameter": {
                             "message": "{requester_id} viewed data of {target_agent_id}",
-                            "target_role_id": "target_role_id",
                             "target_agent_id": "target_agent_id"
                         }
                     }
@@ -107,7 +106,7 @@
             "consequence": {
                 "operation": [
                     {
-                        "type": "deactivate_power",
+                        "type": "remove_power",
                         "parameter": {
                             "power_id": "share_data",
                             "target_role_id": "target_role_id",
@@ -118,8 +117,7 @@
                         "type": "notify",
                         "parameter": {
                             "message": "consent revoked by patient{requester_id}",
-                            "target_role_id": "target_role_id",
-                            "target_agent_id": "target_agent_id"
+                            "target_role_id": "doctor_hospital_1"
                         }
                     }
                 ]
@@ -165,9 +163,8 @@
                     {
                         "type": "notify",
                         "parameter": {
-                            "message": "{requester_id} provided history to {target_agent_id}",
-                            "target_role_id": "target_role_id",
-                            "target_agent_id": "target_agent_id"
+                            "message": "{requester_id} provided history to doctor_hospital_1",
+                            "target_role_id": "doctor_hospital_1"
                         }
                     }
                 ]
@@ -181,9 +178,7 @@
                     {
                         "type": "notify",
                         "parameter": {
-                            "message": "{requester_id} reported for fine",
-                            "target_role_id": "target_role_id",
-                            "target_agent_id": "target_agent_id"
+                            "message": "{requester_id} reported for fine"
                         }
                     }
                 ]
@@ -197,7 +192,7 @@
                     {
                         "type": "notify",
                         "parameter": {
-                            "message": "{requester_id} reported an issue",
+                            "message": "{requester_id} reported an issue with {target_agent_id},{target_role_id}",
                             "target_role_id": "target_role_id",
                             "target_agent_id": "target_agent_id"
                         }

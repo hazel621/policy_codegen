@@ -3,8 +3,8 @@ from database.models import LogRequestExecution, LogDutyExecution, Role, Power, 
 from datetime import datetime
 from datetime import timedelta
 import uuid
-from operations import notifier
 from event_handler.state_checker import check_state
+import redis
 
 router = APIRouter()
 
@@ -71,8 +71,7 @@ async def request_access_handler(agent_id: str, counterparty_role_id:str=None, c
                     fulfilled_at=None,
                     violated_at=None,
                     status="assigned",
-                    status_change_leads_to=[{"state":"assigned","leads_to":{"type":"add_power","power_id":"send_data"}},
- {"state":"fulfilled","leads_to":{"type":"remove_power","power_id":"send_data"}}]
+                    status_change_leads_to=[]
                 )
                 duty_log.save()
                 break

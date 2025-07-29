@@ -3,13 +3,16 @@ version: '3.8'
 services:
   codegen:
     build:
-      context: .                # 👈 根目录作为构建上下文
+      context: .
       dockerfile: codegen/Dockerfile
     container_name: codegen
     expose:
       - "8000"
+    volumes:
+      - enforcement_volume:/app/codegen/handlers   # 👈 输出目录绑定到共享卷
     networks:
       - backend
+
   nginx-gateway:
     build: ./api-gateway
     container_name: nginx-gateway
@@ -17,8 +20,49 @@ services:
       - "8080:80"
     depends_on:
       - codegen
+      - event-handler
     networks:
       - backend
+
+  redis:
+      image: redis:7
+      container_name: redis
+      ports:
+        - "6379:6379"
+      networks:
+        - backend
+
+  event-handler:
+    build:
+      context: .
+      dockerfile: event_handler/Dockerfile
+    container_name: event-handler
+    volumes:
+      - enforcement_volume:/app/handlers   # 👈 handlers 是 codegen 的输出
+    ports:
+      - "8001:8001"
+    depends_on:
+      - codegen
+      - redis 
+    networks:
+      - backend
+
+  # frontend:
+  #   build:
+  #     context: ./policy_frontend  # 👈 改为你前端代码实际所在目录
+  #     dockerfile: Dockerfile 
+  #   container_name: frontend
+  #   ports:
+  #     - "5173:80"
+  #   networks:
+  #     - backend
+  #   depends_on:
+  #     - nginx-gateway
+
+  
+
+volumes:
+  enforcement_volume:
 
 networks:
   backend:

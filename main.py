@@ -1,10 +1,10 @@
 from fastapi import FastAPI,Request
-from codegen.handlers.grant_consent_handler import router as grant_consent_handler
-from codegen.handlers.share_data_handler import router as share_data_handler
-from codegen.handlers.create_data_handler import router as create_data_handler
-from codegen.handlers.create_data_handler2 import router as create_data_handler2
-from codegen.handlers.request_access_handler import router as request_access_handler
-from codegen.handlers.send_data_handler import router as send_data_handler
+# from codegen.handlers.grant_consent_handler import router as grant_consent_handler
+# from codegen.handlers.share_data_handler import router as share_data_handler
+# from codegen.handlers.create_data_handler import router as create_data_handler
+# from codegen.handlers.create_data_handler2 import router as create_data_handler2
+# from codegen.handlers.request_access_handler import router as request_access_handler
+# from codegen.handlers.send_data_handler import router as send_data_handler
 from fastapi.responses import JSONResponse
 from codegen.dpcl_parser import parse_dpcl_full
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,12 +29,12 @@ connect_to_mongo()
 
 # ---- Endpoints ----
 
-app.include_router(share_data_handler, prefix="/actions", tags=["actions"])
-app.include_router(grant_consent_handler, prefix="/actions", tags=["actions"])
-app.include_router(create_data_handler, prefix="/actions", tags=["actions"])
-app.include_router(create_data_handler2, prefix="/actions", tags=["actions"])
-app.include_router(request_access_handler, prefix="/actions", tags=["actions"])
-app.include_router(send_data_handler, prefix="/actions", tags=["actions"])
+# app.include_router(share_data_handler, prefix="/actions", tags=["actions"])
+# app.include_router(grant_consent_handler, prefix="/actions", tags=["actions"])
+# app.include_router(create_data_handler, prefix="/actions", tags=["actions"])
+# app.include_router(create_data_handler2, prefix="/actions", tags=["actions"])
+# app.include_router(request_access_handler, prefix="/actions", tags=["actions"])
+# app.include_router(send_data_handler, prefix="/actions", tags=["actions"])
 
 @app.post("/dpcl")
 async def process_dpcl(request: Request):
@@ -97,15 +97,20 @@ async def add_violations(input: List[ViolationInput]):
     msg = store_violation(input)
     return msg
 
-@app.post("/action-handlers")
-async def create_handler(input: ActionInput):
-    from jinja2 import Environment, FileSystemLoader
-    env = Environment(loader=FileSystemLoader("template"))
-    template = env.get_template("action_handler.py.j2")
-    generate_action_handler(
-        template=template,
-        action_id=input.action_id,
-        action_type=input.action_type,
-        operation=input.consequence
-    )
-    return {"message": f"{input.action_type}_handler generated"}
+# @app.post("/action-handlers")
+# async def create_handler(input: List[ActionInput]):
+#     from jinja2 import Environment, FileSystemLoader
+#     env = Environment(loader=FileSystemLoader("codegen/template"))
+#     template = env.get_template("action_handler_async.py.j2")
+#     msgs = []
+#     for item in input:
+        
+#         msg = generate_action_handler(
+#             template=template,
+#             action_id=item.action_id,
+#             action_type=item.action_type,
+#             action_scope=item.action_scope,
+#             operation=item.operation,
+#         )
+#         msgs.append(msg)
+#     return msgs

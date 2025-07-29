@@ -20,4 +20,4 @@ docker run -p 8000:8000 \
 npm create vite@latest policy-ui -- --template react
 npm run dev
 
-uvcorn 
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload

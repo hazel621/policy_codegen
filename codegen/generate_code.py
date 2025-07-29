@@ -6,42 +6,23 @@ import re
 env = Environment(loader=FileSystemLoader("codegen/template"))
 template = env.get_template("action_handler_async.py.j2")
 
-def parse_rule_component(component_str: str) -> dict:
-    """
-    解析 "+ duty send_data" 或 "- power revoke_access"
-    返回：{type: 'duty', id: 'send_data', operation: 'activate'}
-    """
-    match = re.match(r'([+-])\s*(duty|power)\s+(\w+)', component_str.strip())
-    if not match:
-        return {}
-    
-    op_sign, comp_type, comp_id = match.groups()
-    return {
-        "type": comp_type,
-        "id": comp_id,
-        "operation": "activate" if op_sign == "+" else "deactivate"
-    }
-# 'rules': [{'leads_to': '+ power send_data', 'state': '+ duty send_data'}],
-def generate_rules(rules):
-    state_info = parse_rule_component(rules.get("state", ""))
-    leads_to_info = parse_rule_component(rules.get("leads_to", ""))
-    print(f"State Info: {state_info}, Leads To Info: {leads_to_info}")
-    
-# generate_rules({'leads_to': '+ power send_data', 'state': '+ duty send_data'})
-
-
 def generate_action_handler(*,template,action_id,action_type,action_scope,operation):
-    output = template.render(
-        action_id= action_id,
-        action_type= action_type,
-        action_scope= action_scope,
-        operations= operation,
-    )
-    filename = f'codegen/handlers/{action_type}_handler.py'
-    with open(filename, "w") as f:
-        f.write(output)
-
-    print(f"✅ Generate handler:{filename}")
+    try:
+        output = template.render(
+            action_id= action_id,
+            action_type= action_type,
+            action_scope= action_scope,
+            operations= operation,
+        )
+        filename = f'codegen/handlers/{action_type}_handler.py'
+        with open(filename, "w") as f:
+            f.write(output)
+        print(f"✅ Handler for {action_type} generated successfully: {filename}")
+        return {"status": "finished", "message": f"Handler for {action_type} generated successfully"}
+    except Exception as e:
+        print(f"❌ Error generating handler for {action_type}: {e}")
+        return {"status": "error", "message": str(e)}
+    # print(f"✅ Generate handler:{filename}")
 
 def store_role(roles):
     msg=""
@@ -318,55 +299,187 @@ def store_violation(violations):
             "message": msg}
 
 
-# store_power(config["power"])
+# # generate_action_handler(
+# #     template=template,
+# #     action_id="create_data",
+# #     action_type="create_data",
+# #     action_scope= "hospital_2",
+# #     operation=[
+# #         {
+# #             "type": "notify",
+# #             "parameter": {
+# #                 "message": "new data of {target_agent_id} created by doctor",
+# #                 "target_agent_id": "target_agent_id"
+# #             }
+# #         }
+# #     ]
+# # )
 
-# with open("./config/example_action.json") as f:
-# with open("./config/example_power.json") as f:
-# with open("./config/example_violation.json") as f:
-# with open("./config/example_duty.json") as f:
-# with open("./config/example_role.json") as f:
-    # config = json.load(f)
-# store_action(config["actions"])
-# store_power_only(config["powers"])
-# store_violation(config["violations"])
-# store_duty_only(config["duties"])
-# store_role(config["roles"])
-
-
-
+# # generate_action_handler(
+# #     template=template,
+# #     action_id="create_data",
+# #     action_type="create_data",
+# #     action_scope= "hospital_1",
+# #     operation=[
+# #         {
+# #             "type": "notify",
+# #             "parameter": {
+# #                 "message": "new data of {target_agent_id} created by doctor",
+# #                 "target_agent_id": "from_request",
+# #             }
+# #         }
+# #     ]
+# # )
 # generate_action_handler(
 #     template=template,
-#     action_id="grant_consent",
-#     action_type="grant_consent",
+#     action_id="change_data",
+#     action_type="change_data",
 #     action_scope= "hospital_1",
 #     operation=[
 #         {
-#                 "type": "add_power",
-#                 "parameter": {
-#                     "power_id": "share_data",
-#                     "target_role_id": "from_request",
-#                     "target_agent_id": "from_request",
-#                     "scope": "from_request",
-#                     "item": "requester.data",
-#                     "duration": "10d"
-#                 }
-#             }
+#         "type": "notify",
+#         "parameter": {
+#             "message": "data of {target_agent_id} changed by doctor",
+#             "target_agent_id": "from_request"
+#         }
+#     }
 #     ]
 # )
+# generate_action_handler(
+#     template=template,
+#     action_id="view_data",
+#     action_type="view_data",
+#     action_scope= "hospital_1",
+#     operation=[
+#         {
+#         "type": "notify",
+#         "parameter": {
+#             "message": "{requester_id} viewed data of {target_agent_id}",
+#             "target_agent_id": "from_request"
+#         }
+#     }
+#     ]
+# )
+# generate_action_handler(
+#     template=template,
+#     action_id="update_data",
+#     action_type="update_data",
+#     action_scope= "hospital_1",
+#     operation=[
+#         {
+#         "type": "notify",
+#         "parameter": {
+#             "message": "data of {target_agent_id} updated by doctor",
+#             "target_agent_id": "from_request"
+#         }
+#     }
+#     ]
+# )
+# # generate_action_handler(
+# #     template=template,
+# #     action_id="send_data",
+# #     action_type="send_data",
+# #     action_scope= "hospital_1",
+# #     operation=[
+# #     {
+# #         "type": "notify",
+# #         "parameter": {
+# #             "message": "data sent to {target_agent_id} by {requester_id}",
+# #             "target_agent_id": "from_request"
+# #         }
+# #             }
+# #     ]
+# # )
+
+# # generate_action_handler(
+# #     template=template,
+# #     action_id="grant_consent",
+# #     action_type="grant_consent",
+# #     action_scope= "hospital_1",
+# #     operation=[
+# #         {
+# #                 "type": "add_power",
+# #                 "parameter": {
+# #                     "power_id": "share_data",
+# #                     "target_role_id": "from_request",
+# #                     "target_agent_id": "from_request",
+# #                     "scope": "from_request",
+# #                     "item": "requester.data",
+# #                     "duration": "10d"
+# #                 }
+# #             }
+# #     ]
+# # )
 
 # generate_action_handler(
 #     template=template,
-#     action_id="share_data",
-#     action_type="share_data",
+#     action_id="revoke_consent",
+#     action_type="revoke_consent",
+#     action_scope= "hospital_1",
+#     operation=[
+#           {
+#                         "type": "remove_power",
+#                         "parameter": {
+#                             "power_id": "share_data",
+#                             "target_role_id": "from_request",
+#                             "target_agent_id": "from_request",
+#                         }
+#                     },
+#                     {
+#                         "type": "notify",
+#                         "parameter": {
+#                             "message": "consent revoked by patient{requester_id}",
+#                             "target_role_id": "doctor_hospital_1",
+#                         }
+#                     }
+#     ]
+# )
+
+# # generate_action_handler(
+# #     template=template,
+# #     action_id="request_access",
+# #     action_type="request_access",
+# #     action_scope= "hospital_1",
+# #     operation=[
+# #         {
+# #             "type": "activate_duty",
+# #             "parameter": {
+# #                 "duty_id": "send_data",
+# #                 "counterparty_role_id": "doctor_hospital_1"
+# #             }
+# #         }
+# #     ]
+# # )
+
+# # generate_action_handler(
+# #     template=template,
+# #     action_id="share_data",
+# #     action_type="share_data",
+# #     action_scope= "hospital_1",
+# #     operation=[
+# #         {
+# #             "type": "notify",
+# #             "parameter": {
+# #                 "message": "{requester_id} shared data {item} with {target_agent_id},{target_role_id}",
+# #                 "target_role_id": "from_request",
+# #                 "target_agent_id": "from_request",
+# #                 "item":"from_request"
+# #             }
+# #         }
+# #     ]
+# # )
+
+# generate_action_handler(
+#     template=template,
+#     action_id="provide_history",
+#     action_type="provide_history",
 #     action_scope= "hospital_1",
 #     operation=[
 #         {
 #             "type": "notify",
 #             "parameter": {
-#                 "message": "{requester_id} shared data {item} with {target_agent_id},{target_role_id}",
-#                 "target_role_id": "from_request",
-#                 "target_agent_id": "from_request",
-#                 "item":"from_request"
+#                 "message": "{requester_id} provided history to doctor_hospital_1",
+#                 "target_role_id": "doctor_hospital_1"
 #             }
 #         }
 #     ]
@@ -374,63 +487,32 @@ def store_violation(violations):
 
 # generate_action_handler(
 #     template=template,
-#     action_id="create_data",
-#     action_type="create_data",
-#     action_scope= "hospital_2",
-#     operation=[
-#         {
-#             "type": "notify",
-#             "parameter": {
-#                 "message": "new data of {target_agent_id} created by doctor",
-#                 "target_agent_id": "target_agent_id"
-#             }
-#         }
-#     ]
-# )
-
-# generate_action_handler(
-#     template=template,
-#     action_id="create_data",
-#     action_type="create_data",
-#     action_scope= "hospital_1",
-#     operation=[
-#         {
-#             "type": "notify",
-#             "parameter": {
-#                 "message": "new data of {target_agent_id} created by doctor",
-#                 "target_agent_id": "from_request",
-#             }
-#         }
-#     ]
-# )
-
-# generate_action_handler(
-#     template=template,
-#     action_id="request_access",
-#     action_type="request_access",
-#     action_scope= "hospital_1",
-#     operation=[
-#         {
-#             "type": "activate_duty",
-#             "parameter": {
-#                 "duty_id": "send_data",
-#                 "counterparty_role_id": "doctor_hospital_1"
-#             }
-#         }
-#     ]
-# )
-# generate_action_handler(
-#     template=template,
-#     action_id="send_data",
-#     action_type="send_data",
+#     action_id="report_fine",
+#     action_type="report_fine",
 #     action_scope= "hospital_1",
 #     operation=[
 #     {
 #         "type": "notify",
 #         "parameter": {
-#             "message": "data sent to {target_agent_id} by {requester_id}",
+#             "message": "{requester_id} reported for fine"
+#         }
+#     }
+#     ]
+# )
+
+# generate_action_handler(
+#     template=template,
+#     action_id="report_fine",
+#     action_type="report_fine",
+#     action_scope= "hospital_1",
+#     operation=[
+#     {
+#         "type": "notify",
+#         "parameter": {
+#             "message": "{requester_id} reported an issue with {target_agent_id},{target_role_id}",
+#             "target_role_id": "from_request",
 #             "target_agent_id": "from_request"
 #         }
-#             }
+#     }
 #     ]
 # )

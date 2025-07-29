@@ -3,8 +3,8 @@ from database.models import LogRequestExecution, LogDutyExecution, Role, Power, 
 from datetime import datetime
 from datetime import timedelta
 import uuid
-from operations import notifier
 from event_handler.state_checker import check_state
+import redis
 
 router = APIRouter()
 
@@ -35,15 +35,35 @@ async def create_data_handler(agent_id: str, counterparty_role_id:str=None, coun
     
     
     requester_id = agent_id
-    message = f"new data of {target_agent_id} created by doctor"
+    message = f"new data of {target_agent_id} created by doctor_hospital_1"
     target_agent_id = "from_request" if "from_request"!="from_request" else target_agent_id
     target_role_id = "" if ""!="from_request" else target_role_id
     if target_agent_id:
-        message = f"{requester_id} new data of {target_agent_id} created by doctor {target_agent_id}"
-        notifier.notify(target_agent_id, message)
+        message = f"new data of {target_agent_id} created by doctor_hospital_1"
+        try:
+            r = redis.Redis(host="redis", port=6379, socket_connect_timeout=2, socket_timeout=2)
+            r.publish(target_agent_id, message)
+            print(f"Notification sent to {target_agent_id}: {message}")
+        except redis.ConnectionError as e:
+            print(f"Redis connection error: {e}")
+            log.status = "failed"
+            log.result = "Redis connection error"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=500, detail="Internal server error: Redis connection failed")
     elif target_role_id:
-        message = f"{requester_id} new data of {target_agent_id} created by doctor {target_role_id}"
-        notifier.notify(target_role_id, message)
+        message = f"new data of {target_agent_id} created by doctor_hospital_1"
+        try:
+            r = redis.Redis(host="redis", port=6379, socket_connect_timeout=2, socket_timeout=2)
+            r.publish(target_role_id, message)
+            print(f"Notification sent to {target_role_id}: {message}")
+        except redis.ConnectionError as e:
+            print(f"Redis connection error: {e}")
+            log.status = "failed"
+            log.result = "Redis connection error"
+            log.end_at = datetime.now()
+            log.save()
+            raise HTTPException(status_code=500, detail="Internal server error: Redis connection failed")
     if duty_ref:
         duty_log = LogDutyExecution.objects(uid=duty_ref).first()
         duty_log.status = "fulfilled"
@@ -51,7 +71,6 @@ async def create_data_handler(agent_id: str, counterparty_role_id:str=None, coun
         duty_log.save()
         print(f"🔔 Notification sent to {target_role_id or target_agent_id} by {requester_id}")
     
-
     
     
 

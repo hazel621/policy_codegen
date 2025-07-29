@@ -21,6 +21,12 @@ class ActionInput(BaseModel):
     action_type: str
     consequence: Dict  
 
+class ActionHandlerInput(BaseModel):
+    action_id: str
+    action_type: str
+    operation: list
+    action_scope: str 
+
 class PowerInput(BaseModel):
     uid: str
     action_type: str
@@ -66,40 +72,3 @@ class AgentInput(BaseModel):
     uid: str
     agent_name: str
     roles: List[AgentRoleRelationInput] = Field(default_factory=list)
-
-# ---------- Execution Logging ----------
-
-class LogDutyExecutionInput(BaseModel):
-    uid: str
-    request_id: str
-    requester_id: str
-    action_id: str
-    duty_id: str
-    related_agents: Dict
-    assigned_at: datetime
-    started_at: Optional[datetime] = None
-    fulfilled_at: Optional[datetime] = None
-    violated_at: Optional[datetime] = None
-    violation_pending_at: Optional[datetime] = None
-    status: str  # should be validated separately: ["assigned", "executing", etc.]
-
-class LogRequestExecutionInput(BaseModel):
-    uid: str
-    requester_id: str
-    action_id: str
-    started_at: datetime
-    end_at: Optional[datetime] = None
-    related_duties: List[str] = Field(default_factory=list)
-    related_powers: List[str] = Field(default_factory=list)
-    status: str  # ["pending","failed","succeeded"]
-    result: Optional[str] = None
-
-# ---------- Duty Task ----------
-
-class DutyTaskInput(BaseModel):
-    uid: str
-    requester_id: str
-    related_action_id: str
-    duty_id: str
-    deadline: datetime
-    status: str  # choices=["assigned", "executing", "fulfilled", "violated", "waiting","violation_pending"]

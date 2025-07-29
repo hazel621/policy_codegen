@@ -1,37 +1,189 @@
 {
     "handlers": [
-        {
-            "action_id": "grant_consent",
-            "action_type": "grant_consent",
-            "action_scope": "hospital_1",
-            "operation": [
-                {
-                    "type": "add_power",
-                    "parameter": {
-                        "power_id": "share_data",
-                        "target_role_id": "from_request",
-                        "target_agent_id": "from_request",
-                        "scope": "from_request",
-                        "item": "requester.data",
-                        "duration": "10d"
-                    }
-                }
-            ]
-        },
-        {
-            "action_id": "share_data",
-            "action_type": "share_data",
-            "action_scope": "hospital_1",
-            "operation": [
-                {
-                    "type": "notify",
-                    "parameter": {
-                        "message": "{requester_id} shared data with {target_agent_id} {target_role_id}",
-                        "target_role_id": "target_role_id",
-                        "target_agent_id": "target_agent_id"
-                    }
-                }
-            ]
-        }
+      {
+        "action_id": "create_data",
+        "action_type": "create_data",
+        "action_scope": "hospital_2",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "new data of {target_agent_id} created by doctor_hospital_2",
+              "target_agent_id": "from_request"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "create_data",
+        "action_type": "create_data",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "new data of {target_agent_id} created by doctor_hospital_1",
+              "target_agent_id": "from_request"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "change_data",
+        "action_type": "change_data",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "data of {target_agent_id} changed by doctor_hospital_1",
+              "target_agent_id": "from_request"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "view_data",
+        "action_type": "view_data",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "{requester_id} viewed data of {target_agent_id}",
+              "target_agent_id": "from_request"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "update_data",
+        "action_type": "update_data",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "data of {target_agent_id} updated by doctor_hospital_1",
+              "target_agent_id": "from_request"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "send_data",
+        "action_type": "send_data",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "data sent to {target_agent_id} by {requester_id}",
+              "target_agent_id": "from_request"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "grant_consent",
+        "action_type": "grant_consent",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "add_power",
+            "parameter": {
+              "power_id": "share_data",
+              "target_role_id": "from_request",
+              "target_agent_id": "from_request",
+              "scope": "from_request",
+              "item": "requester.data",
+              "duration": "10d"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "revoke_consent",
+        "action_type": "revoke_consent",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "remove_power",
+            "parameter": {
+              "power_id": "share_data",
+              "target_role_id": "from_request",
+              "target_agent_id": "from_request",
+              "item":"requester.data"
+            }
+          },
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "consent revoked by patient{requester_id}",
+              "target_role_id": "doctor_hospital_1"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "request_access",
+        "action_type": "request_access",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "activate_duty",
+            "parameter": {
+              "duty_id": "send_data",
+              "counterparty_role_id": "doctor_hospital_1"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "share_data",
+        "action_type": "share_data",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "{requester_id} shared data {item} with {target_agent_id},{target_role_id}",
+              "target_role_id": "from_request",
+              "target_agent_id": "from_request",
+              "item": "from_request"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "provide_history",
+        "action_type": "provide_history",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "{requester_id} provided history to doctor_hospital_1",
+              "target_role_id": "doctor_hospital_1"
+            }
+          }
+        ]
+      },
+      {
+        "action_id": "report_fine",
+        "action_type": "report_fine",
+        "action_scope": "hospital_1",
+        "operation": [
+          {
+            "type": "notify",
+            "parameter": {
+              "message": "{requester_id} reported an issue with {target_agent_id},{target_role_id}",
+              "target_role_id": "from_request",
+              "target_agent_id": "from_request"
+            }
+          }
+        ]
+      }
     ]
-}
+  }
+  

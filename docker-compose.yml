@@ -9,7 +9,7 @@ services:
     expose:
       - "8000"
     volumes:
-      - enforcement_volume:/app/codegen/handlers   # 👈 输出目录绑定到共享卷
+      - enforcement_volume:/app/codegen/handlers   # 输出目录绑定到共享卷
     networks:
       - backend
 
@@ -38,7 +38,7 @@ services:
       dockerfile: event_handler/Dockerfile
     container_name: event-handler
     volumes:
-      - enforcement_volume:/app/handlers   # 👈 handlers 是 codegen 的输出
+      - enforcement_volume:/app/handlers   # handlers 是 codegen 的输出
     ports:
       - "8001:8001"
     depends_on:
@@ -47,19 +47,32 @@ services:
     networks:
       - backend
 
-  # frontend:
-  #   build:
-  #     context: ./policy_frontend  # 👈 改为你前端代码实际所在目录
-  #     dockerfile: Dockerfile 
-  #   container_name: frontend
-  #   ports:
-  #     - "5173:80"
-  #   networks:
-  #     - backend
-  #   depends_on:
-  #     - nginx-gateway
+  frontend:
+    build: ./policy_frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - nginx-gateway
+    networks:
+      - backend
 
-  
+  duty-controller:
+    build:
+      context: ./duty_controller
+    container_name: duty-controller
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  violation-monitor:
+    build:
+      context: ./violation_monitor
+    container_name: violation-monitor
+    depends_on:
+      - redis
+    networks:
+      - backend
 
 volumes:
   enforcement_volume:

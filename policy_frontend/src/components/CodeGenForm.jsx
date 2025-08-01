@@ -121,7 +121,7 @@ export default function CodegenSubmitPanel() {
 
   const handleDpclSubmit = async (dpclText) => {
     try {
-      const res = await fetch("http://nginx-gateway/codegen/dpcl", {
+      const res = await fetch("http://localhost:8080/codegen/dpcl", {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: dpclText,
@@ -166,7 +166,7 @@ export default function CodegenSubmitPanel() {
     }
   
     try {
-      const res = await fetch(`http://nginx-gateway/codegen/${endpoint}`, {
+      const res = await fetch(`http://localhost:8080/codegen/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jsonData),

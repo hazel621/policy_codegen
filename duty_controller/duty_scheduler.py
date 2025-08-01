@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import redis
 def notify(channel, message):
-    r = redis.Redis()
+    r = redis.Redis(host="redis", port=6379, socket_connect_timeout=2, socket_timeout=2)
     role_channel = channel
     r.publish(role_channel, message)
     print(f"Notification pub to {channel}: {message}")
@@ -86,4 +86,4 @@ print("✅ Duty Scheduler started and running...")
 
 # Prevent main thread from exiting
 while True:
-    time.sleep(10)
+    time.sleep(40)

@@ -94,15 +94,30 @@ async def listen_to_duties():
                             #     deadline = condition["time"].replace("days", "")
 
                     task_queue = db['duty_task_list']
-                    task_queue.insert_one({
+                    if not await task_queue.find_one({"_id": document["_id"]}):
+                        try:
+                            await task_queue.insert_one({
                                 "_id": document["_id"],
                                 "requester_id": document["requester_id"],
-                                "related_action_id": document["action_id"], #duty-related action needed to be fufilled
+                                "related_action_id": document["action_id"],
                                 "duty_id": document["duty_id"],
                                 "deadline": document["assigned_at"] + parse_timeout(deadline) if deadline else None,
-                                # "deadline": document["assigned_at"] + timedelta(seconds=int(deadline)) if deadline else None,
                                 "status": "assigned"
                             })
+                        except Exception as e:
+                            print(f"⚠️ Failed to insert task {document['_id']} into queue: {e}")
+                    else:
+                        print(f"⚠ DutyTask with _id {document['_id']} already exists, skipping insert.")
+
+                    # task_queue.insert_one({
+                    #             "_id": document["_id"],
+                    #             "requester_id": document["requester_id"],
+                    #             "related_action_id": document["action_id"], #duty-related action needed to be fufilled
+                    #             "duty_id": document["duty_id"],
+                    #             "deadline": document["assigned_at"] + parse_timeout(deadline) if deadline else None,
+                    #             # "deadline": document["assigned_at"] + timedelta(seconds=int(deadline)) if deadline else None,
+                    #             "status": "assigned"
+                    #         })
                 elif op_type == "update":
                     document_key = change["documentKey"]
                     updated_fields = change["updateDescription"]["updatedFields"]
@@ -119,6 +134,8 @@ async def listen_to_duties():
 
     except PyMongoError as e:
         print(f"❌ Error watching changes: {e}")
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
 
 
 if __name__ == "__main__":

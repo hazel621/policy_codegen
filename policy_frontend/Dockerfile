@@ -1,29 +1,27 @@
-# Step 1: Build React app
-FROM node:18 AS builder
+# ----------- 构建阶段 -------------
+FROM node:18-alpine AS builder
 
-# 设置工作目录
 WORKDIR /app
 
-# 安装依赖
+# 拷贝依赖文件并安装依赖
 COPY package.json package-lock.json ./
 RUN npm install
 
-# 拷贝源代码并构建
+# 拷贝源码并构建
 COPY . .
 RUN npm run build
 
-# 阶段2：使用 Nginx 运行构建后的静态文件
-FROM nginx:stable-alpine
+# ----------- 运行阶段 -------------
+FROM nginx:alpine
 
-# 清除默认静态资源
+# 清理默认页面
 RUN rm -rf /usr/share/nginx/html/*
 
-# 拷贝构建产物
+# 拷贝构建好的文件
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 拷贝自定义 nginx.conf（如果你需要 history 模式支持可以加上）
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 添加 CORS 支持（可选：适用于浏览器端开发时调试跨域）
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]

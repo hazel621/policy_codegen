@@ -53,12 +53,6 @@ import json
 def clean(val: str) -> str:
     return val.strip().strip('"').strip().replace("#", "")
 
-# def strip_block_body(block: str) -> str:
-    match = re.match(r'(\s*\+\s*(duty|power)\s+\w+\s*\{)', block)
-    if not match:
-        return block  # fallback: return original
-    prefix = match.group(1)
-    return f"{prefix}}}"
 
 # ----------- Block Extractors -----------
 def extract_blocks_by_prefix(text: str, prefix_pattern: str) -> List[str]:

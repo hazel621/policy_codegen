@@ -121,7 +121,7 @@ export default function CodegenSubmitPanel() {
 
   const handleDpclSubmit = async (dpclText) => {
     try {
-      const res = await fetch("http://localhost:8080/codegen/dpcl", {
+      const res = await fetch("http://localhost:8000/dpcl", {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: dpclText,

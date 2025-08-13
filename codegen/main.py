@@ -19,7 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 @app.post("/dpcl")
 async def process_dpcl(request: Request):
     try:
@@ -31,19 +30,19 @@ async def process_dpcl(request: Request):
         logs = []
         if "actions" in parsed:
             msg = store_action(parsed["actions"])
-            logs.append(f"Stored actions: {msg}")
+            logs.append(msg['message'])
 
         if "powers" in parsed:
             msg = store_power(parsed["powers"])
-            logs.append(f"Stored powers: {msg}")
+            logs.append(msg['message'])
 
         if "violations" in parsed:
             msg = store_violation(parsed["violations"])
-            logs.append(f"Stored violations: {msg}")
+            logs.append(msg['message'])
 
         if "duties" in parsed:
             msg = store_duty(parsed["duties"])
-            logs.append(f"Stored duties: {msg}")
+            logs.append(msg['message'])
 
         return {
             "status": "finished",

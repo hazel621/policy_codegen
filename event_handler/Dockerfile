@@ -16,5 +16,5 @@ RUN apt update && apt install -y iputils-ping redis-tools
 EXPOSE 8001
 
 # 启动 FastAPI 应用（main.py 中的 app 实例）
-CMD ["uvicorn", "event_handler.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "event_handler.main:app", "--reload", "--host", "0.0.0.0", "--port", "8001"]
 

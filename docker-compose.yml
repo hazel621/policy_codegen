@@ -38,7 +38,7 @@ services:
       dockerfile: event_handler/Dockerfile
     container_name: event-handler
     volumes:
-      - enforcement_volume:/app/handlers   # handlers 是 codegen 的输出
+      - enforcement_volume:/app/codegen/handlers   # handlers 是 codegen 的输出
     ports:
       - "8001:8001"
     depends_on:
@@ -56,23 +56,23 @@ services:
     networks:
       - backend
 
-  duty-controller:
-    build:
-      context: ./duty_controller
-    container_name: duty-controller
-    depends_on:
-      - redis
-    networks:
-      - backend
+  # duty-controller:
+  #   build:
+  #     context: ./duty_controller
+  #   container_name: duty-controller
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - backend
 
-  violation-monitor:
-    build:
-      context: ./violation_monitor
-    container_name: violation-monitor
-    depends_on:
-      - redis
-    networks:
-      - backend
+  # violation-monitor:
+  #   build:
+  #     context: ./violation_monitor
+  #   container_name: violation-monitor
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - backend
 
 volumes:
   enforcement_volume:
